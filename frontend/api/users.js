@@ -32,4 +32,10 @@ module.exports = {
     getAllUsers: async ({ page, count, query }) => {
         return axios.get(`${BASE_URL}/all-users?page=${page}&count=${count}&query=${query}`).then((res) => res.data)
     },
+	getAllAnalyticsTeacher:async (data) => {
+		return axios.get(`${BASE_URL}/getanalyticsteacher`, data).then((res) => res.data)
+	},
+	getAllAnalyticsAdmin:async (data) => {
+		return axios.get(`${BASE_URL}/getanalyticsadmin`, data).then((res) => res.data)
+	},
 }

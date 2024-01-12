@@ -64,6 +64,20 @@ module.exports = {
 		}
 	},
 
+	getCategorisedCourses: async (req, res, next) => {
+		try {
+			const { page, count } = req.query
+			const totalCourses = await Course.countDocuments({ category: category._id })
+			const courses = await Course.find({ category: category._id })
+				
+				.limit(count)
+				.skip((page - 1) * count)
+			res.status(200).json({ success: true, totalCourses, courses })
+		} catch (error) {
+			next(error)
+		}
+	},
+
 	// Get all courses by category
 	getCoursesByTeacher: async (req, res, next) => {
 		try {
@@ -371,4 +385,71 @@ module.exports = {
 			next(error)
 		}
 	},
+
+	getSearchCourses: async (req, res, next) => {
+		try {
+		 let { count, search } = req.query
+	     console.log("search",search);
+	
+		 console.log("count",count);
+		 
+		const page = 1
+		 count = parseInt(count) || 10
+	   
+		//  const sortQuery = {}
+		//  if (sort) {
+		//   if (sort === 'latest') sortQuery['createdAt'] = -1
+		//   if (sort === 'price-desc') sortQuery['price'] = -1
+		//   if (sort === 'price-asc') sortQuery['price'] = 1
+		  // TODO: Add more sort options
+		  // if(sort === 'popular') sortQuery['enrolledCount'] = -1
+		  // if(sort === 'highest-rated') sortQuery['rating'] = -1
+		//  }
+	   
+		 let filterArray = [{ status: 'Published' }]
+	   
+		//  filter = decodeURIComponent(filter)
+		//  if (filter) {
+		//   filter.split('&').forEach((item) => {
+		//    const [key, value] = item.split('=')
+		//    if (key === 'level') filterArray.push({ level: { $in: value.split(',') } })
+		//    if (key === 'category') filterArray.push({ category: { $in: value.split(',') } })
+		//    if (key === 'price') {
+		// 	const [min, max] = value.split('-')
+		// 	filterArray.push({ price: { $gte: min, $lte: max } })
+		//    }
+		//   })
+		//  }
+	   
+		 search = decodeURIComponent(search)
+		 const escapedSearchQuery = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+		 if (escapedSearchQuery) {
+		  filterArray.push({
+		   $or: [
+			{ $text: { $search: search } },
+			{ title: { $regex: new RegExp(search, 'i') } },
+		   ],
+		  })
+		 }
+	   console.log("filter",filterArray)
+		 const totalCourses = await Course.countDocuments({ $and: filterArray })
+		 const courses = await Course.find({ $and: filterArray })
+		  .populate('teacher', 'name profileImage')
+		//   .sort(sortQuery)
+		  .limit(count)
+		  .skip((page - 1) * count)
+		  .lean()
+	   
+		 if (req.user) {
+		  const favorites = await Favorite.find({ user: req.user._id })
+		  courses.forEach((course) => {
+		   course.isFavorite = favorites.some((favorite) => favorite.course.toString() === course._id.toString())
+		  })
+		 }
+		 
+		 res.status(200).json({ success: true, totalCourses, courses })
+		} catch (error) {
+		 next(error)
+		}
+	   }
 }

@@ -39,6 +39,7 @@ export default function Header() {
 		user: <TagUser className="text-danger" fill="currentColor" size={30} />,
 	}
 	const[categories,setCategories]= useState("")
+	const[search,setSearch]= useState("")
 	const { user } = useSelector((state) => state.user)
 
 	const dispatch = useDispatch()
@@ -80,6 +81,9 @@ export default function Header() {
 
 	const handleHomeButton = () => {
 		router.push('/')
+	}
+	const handleSearch = () => {
+		router.push(`/search?search=${search}`)
 	}
 
 	return (
@@ -125,25 +129,6 @@ export default function Header() {
 										</DropdownItem>
 									))}
 							</DropdownMenu>
-						{/* <DropdownMenu
-							aria-label="ACME features"
-							className="w-[340px] text-default-500"
-							itemClasses={{
-								base: 'gap-4',
-							}}>
-							<DropdownItem
-								key="autoscaling"
-								description="Automatically scale your app to meet traffic demands without worrying about infrastructure."
-								startContent={icons.scale}>
-								Web Development
-							</DropdownItem>
-							<DropdownItem
-								key="usage_metrics"
-								description="Track and analyze usage metrics to guide your decisions on where to invest in the future."
-								startContent={icons.activity}>
-								Artificial Intelligence
-							</DropdownItem>
-						</DropdownMenu> */}
 					</Dropdown>
 				</NavbarContent>
 			</div>
@@ -159,7 +144,9 @@ export default function Header() {
 					size="sm"
 					startContent={<SearchIcon size={18} />}
 					type="search"
+					onChange={(e)=>setSearch(e.target.value)}
 				/>
+				<Button onClick={handleSearch}>Search</Button>
 			</NavbarContent>
 			{user && user.role == 'user' ? (
 				<div className="flex justify-center items-center gap-6">
@@ -204,7 +191,6 @@ export default function Header() {
 					<Link as={NextLink} href="/wishlist">
 					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bookmark-check"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2Z"/><path d="m9 10 2 2 4-4"/></svg>
 					</Link>
-						{/* <Image src="/cart.svg" width={24} height={24} alt="" onClick={() => setIsLoggedIn(false)} /> */}
 					</NavbarContent>
 				</div>
 			) : (
@@ -220,18 +206,6 @@ export default function Header() {
 							Login
 						</Link>
 					</NavbarItem>
-
-					{/* <NavbarItem className="hidden md:flex">
-						<Button
-							as={NextLink}
-							color="primary"
-							variant="flat"
-							href="/signup"
-							className="font-bold"
-							size="sm">
-							Sign Up
-						</Button>
-					</NavbarItem> */}
 				</NavbarContent>
 			)}
 		</Navbar>

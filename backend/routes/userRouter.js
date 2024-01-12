@@ -15,9 +15,11 @@ router.post('/forgotsend-otp', userController.forgotsendOtp)
 router.post('/forgotpassword', userController.forgotpassword)
 
 router.get('/get-users-teacher', protectTeacher, userController.getUsersOfTeacher) //teacher
+router.get('/getanalyticsteacher', protectTeacher, userController.getAllAnalyticsTeacher) //teacher
 
 router.get('/all-users', protectAdmin, userController.getAllUsers) //admin
 router.get('/all-teachers', protectAdmin, userController.getAllTeachers) //admin
+router.get('/getanalyticsadmin', protectAdmin, userController.getAllAnalyticsAdmin) //admin
 router.patch('/change-status', protectAdmin, userController.changeUserStatus) //admin
 
 module.exports = router

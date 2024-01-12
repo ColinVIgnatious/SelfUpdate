@@ -1,9 +1,10 @@
 'use client'
 import { getEnrolledCourses } from '@/api/courses'
-import { Card, CardBody, CardFooter, CircularProgress, Image, Progress } from '@nextui-org/react'
+import { Card, CardBody, CardFooter, CircularProgress, Image,Link, Progress } from '@nextui-org/react'
 import React, { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import { useQuery } from 'react-query'
+import NextLink from 'next/link'
 
 export default function Page() {
 	const [courses, setCourses] = useState([])
@@ -47,27 +48,43 @@ export default function Page() {
 						isPressable
 						onPress={() => console.log('item pressed')}>
 						<CardBody className="overflow-visible p-0">
-							<Image
+						<Link as={NextLink} href={`courses/${item?.course?._id}`}>
+							<Image 
 								shadow="sm"
 								radius="lg"
 								width="100%"
 								alt={item?.course?.title}
-								className="w-full object-cover h-[140px]"
+								className="w-64 object-cover h-32"
 								src={item?.course?.thumbnail}
 							/>
+							</Link>
+							
+					
+						
 						</CardBody>
 						<CardFooter>
 							<b className="text-left text-small text-ellipsis-95">{item?.course?.title}</b>
 							<CircularProgress
-      label="Completed"
-      size="md"
-      value={calculateProgress(item)}
-      color="warning"
-      formatOptions={{ style: "percent" }}
-      showValueLabel={true}
-    />
-						</CardFooter>
-						
+								label="Completed"
+								size="md"
+								value={calculateProgress(item)}
+								color="warning"
+								formatOptions={{ style: "percent" }}
+								showValueLabel={true}
+								/>
+
+									
+
+						   </CardFooter>
+						   <p className="text-2xl font-bold">₹{item?.course?.price}</p>
+						   <p className="text-tiny italic">
+											purchased on{' '}
+											{new Date(item?.purchasedAt).toLocaleDateString('en-IN', {
+												day: 'numeric',
+												month: 'short',
+												year: 'numeric',
+											})}
+										</p>
 					</Card>
 				))}
 			</div>

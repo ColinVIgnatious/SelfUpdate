@@ -25,7 +25,7 @@ export default function CourseListingItem({course}) {
 		<Card className="max-w-[350px]">
 				<CardHeader className="justify-between">
 				<Link as={NextLink} href={`courses/${course?._id}`}>
-					<Image
+					<Image className='w-64 h-32'
 						isBlurred
 						src={course.thumbnail}
 						width={350}

@@ -2,12 +2,20 @@ import axios from 'axios'
 export function getCourses(count, type) {
 	return axios.get(`/api/courses?count=${count}&type=${type}`).then((res) => res.data)
 }
+export function getSearchCourses({count,search}) {
+	console.log(search)
+	return axios.get(`/api/search?search=${search}&count=${count}`).then((res) => res.data)
+}
 
 export function getPendingCourses({ page, count, query }) {
 	return axios.get(`/api/pending-courses?page=${page}&count=${count}&query=${query}`).then((res) => res.data)
 }
 
-	export function changeCourseStatus({id, status}) {
+export function getCategorisedCourses({ page, count, query }) {
+	return axios.get(`/api/categorised-courses?page=${page}&count=${count}&query=${query}`).then((res) => res.data)
+}
+
+export function changeCourseStatus({id, status}) {
 		return axios.patch(`/api/change-course-status?id=${id}&status=${status}`).then((res) => res.data)
 	}
 export function getCoursesByTeacher({ page, count, query }) {

@@ -17,9 +17,7 @@ import {
 import { useQuery, useMutation, QueryClient } from 'react-query'
 import { getCourse, createStripeSession, getEnrollment } from '@/api/courses'
 import toast from 'react-hot-toast'
-
 import { Home, PlayCircle, PlaySquare } from 'lucide-react'
-// import Reviews from './Reviews'
 import { useRouter } from 'next/navigation'
 // import { createChat } from '@/api/chats'
 
@@ -54,6 +52,7 @@ export default function App({ params: { slug, courseId } }) {
 
 	useEffect(() => {
 		if (enrollmentData?.enrollment) {
+			console.log(enrollmentData?.enrollment)
 			setEnrollment(enrollmentData?.enrollment)
 		}
 	}, [enrollmentData])
@@ -153,10 +152,10 @@ export default function App({ params: { slug, courseId } }) {
 										onClick={handleEnroll}
 										className="font-bold">
 										{enrollment
-											? enrollment?.progress > 0
+											? (enrollment?.progress.length > 0
 												? 'Continue Learning'
-												: 'Start Learning'
-											: 'Enroll Now'}
+												: 'Start Learning')
+											: 'Enroll Now'}									
 									</Button>
 									<Spacer y={4} />
 									<p className="text-tiny text-default-500 text-center">
@@ -226,9 +225,6 @@ export default function App({ params: { slug, courseId } }) {
 											</AccordionItem>
 										))}
 									</Accordion>
-								</Tab>
-								<Tab key="reviews" title="Reviews">
-									{/* <Reviews courseId={course._id} /> */}
 								</Tab>
 							</Tabs>
 						</div>
