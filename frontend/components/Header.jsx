@@ -40,6 +40,8 @@ export default function Header() {
 	}
 	const[categories,setCategories]= useState("")
 	const[search,setSearch]= useState("")
+	const [selectedCategory, setSelectedCategory] = useState(null);
+
 	const { user } = useSelector((state) => state.user)
 
 	const dispatch = useDispatch()
@@ -85,6 +87,7 @@ export default function Header() {
 	const handleSearch = () => {
 		router.push(`/search?search=${search}`)
 	}
+	  
 
 	return (
 		<Navbar maxWidth="xl">
@@ -124,8 +127,10 @@ export default function Header() {
 								>
 								{categories &&
 									categories.map((category) => (
-										<DropdownItem key={category._id} description={category.description}>
-											{category.title}
+										<DropdownItem key={category._id} description={category.description}>											
+											<Link href={`/category/${category._id}`}>
+                    						<a>{category.title}</a>
+               								</Link>
 										</DropdownItem>
 									))}
 							</DropdownMenu>

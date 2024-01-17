@@ -77,7 +77,7 @@ export default function CreateSegment({ isOpen, onClose, chapter }) {
 							<div className="p-4">
 								<Input
 									isClearable
-									label="Segemnt Title"
+									label="Segment Title"
 									labelPlacement="outside"
 									placeholder=" "
 									className="w-full"
@@ -126,7 +126,7 @@ export default function CreateSegment({ isOpen, onClose, chapter }) {
 									<p className="text-tiny text-danger">{errors?.video}</p>
 								</div>
 								<Spacer y={4} />
-								<div>
+								{/* <div>
 									<p className="text-[14px] font-medium text-slate-700">Attachments</p>
 									<label className="block mt-2">
 										<input
@@ -139,12 +139,12 @@ export default function CreateSegment({ isOpen, onClose, chapter }) {
                                                             hover:file:bg-violet-100"
 										/>
 									</label>
-								</div>
+								</div> */}
 							</div>
 						</ModalBody>
 						<ModalFooter>
 							<Button color="danger" variant="light" onPress={onClose}>
-								Close
+								Cancel
 							</Button>
 							<Button isLoading={isLoading} variant="flat" color="primary" onPress={handleCreateSegment}>
 								Add

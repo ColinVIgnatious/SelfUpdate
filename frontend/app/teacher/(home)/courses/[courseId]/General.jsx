@@ -154,10 +154,12 @@ export default function General({ errors, setErrors }) {
 						<ImagePlus color="#fff" size={36} />
 					</div>
 					<input
+					
 						type="file"
 						ref={imageInput}
 						name="image"
 						className="hidden"
+						accept=".jpg, .jpeg"
 						onChange={handleImageChange}></input>
 				</div>
 				<p className="text-tiny text-danger mt-1">{errors?.thumbnail}</p>

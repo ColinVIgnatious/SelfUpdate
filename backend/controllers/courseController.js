@@ -48,8 +48,6 @@ module.exports = {
 		}
 	},
 
-	
-
 	getPendingCourses: async (req, res, next) => {
 		try {
 			const { page, count } = req.query
@@ -66,10 +64,10 @@ module.exports = {
 
 	getCategorisedCourses: async (req, res, next) => {
 		try {
-			const { page, count } = req.query
-			const totalCourses = await Course.countDocuments({ category: category._id })
-			const courses = await Course.find({ category: category._id })
-				
+			const { page, count,categoryId } = req.query
+			const totalCourses = await Course.countDocuments({ category: categoryId })
+			const courses = await Course.find({ category: categoryId })
+				.populate('category', 'title')
 				.limit(count)
 				.skip((page - 1) * count)
 			res.status(200).json({ success: true, totalCourses, courses })
@@ -389,10 +387,6 @@ module.exports = {
 	getSearchCourses: async (req, res, next) => {
 		try {
 		 let { count, search } = req.query
-	     console.log("search",search);
-	
-		 console.log("count",count);
-		 
 		const page = 1
 		 count = parseInt(count) || 10
 	   
@@ -431,7 +425,6 @@ module.exports = {
 		   ],
 		  })
 		 }
-	   console.log("filter",filterArray)
 		 const totalCourses = await Course.countDocuments({ $and: filterArray })
 		 const courses = await Course.find({ $and: filterArray })
 		  .populate('teacher', 'name profileImage')
