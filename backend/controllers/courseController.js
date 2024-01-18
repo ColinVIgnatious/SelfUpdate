@@ -10,6 +10,7 @@ const User = require('../models/User')
 const { uploadToS3 } = require('../helpers/awsHelpers')
 const { Video } = new Mux(process.env.MUX_TOKEN_ID, process.env.MUX_TOKEN_SECRET)
 const Favorite = require('../models/Wishlist')
+const sizeOf = require('image-size');
 
 module.exports = {
 	// Get all courses
@@ -61,7 +62,25 @@ module.exports = {
 			next(error)
 		}
 	},
+	
 
+	getPendingCoursesDetails: async (req, res, next) => {
+		try {
+			const { courseId } = req.query
+			const course = await Course.find({ _id: courseId })
+							.populate('teacher', 'name')
+							.populate('category', 'title')
+							.populate({
+								path: 'chapters',
+								populate: {
+									path: 'segments',
+								},
+							})
+			res.status(200).json({ success: true, course })
+		} catch (error) {
+			next(error)
+		}
+	},
 	getCategorisedCourses: async (req, res, next) => {
 		try {
 			const { page, count,categoryId } = req.query
@@ -316,6 +335,12 @@ module.exports = {
 			const { id: courseId } = req.params
 			if (!courseId) return res.status(400).json({ success: false, message: 'Invalid request' })
 			if (req.file) {
+				// Validate if the uploaded file is an image
+				const dimensions = sizeOf(req.file.buffer);
+
+				if (!dimensions?.width || !dimensions?.height) {
+					return res.status(400).json({ success: false, message: 'Invalid image file.' });
+				}
 				var imgUrl = await uploadToS3('courses', req.file)
 				const course = await Course.findById(courseId)
 				course.thumbnail = `https://selfupdate.s3.ap-south-1.amazonaws.com/courses/${imgUrl}`
@@ -324,7 +349,7 @@ module.exports = {
 			} else {
 				res.status(400).json({
 					success: false,
-					errros: { thumbnail: 'Looks like the image you chose didnt work' },
+					errors: { thumbnail: 'Looks like the image you chose didnt work' },
 				})
 			}
 		} catch (error) {
@@ -370,10 +395,11 @@ module.exports = {
 
 	changeCourseStatus: async (req, res, next) => {
 		try {
-			const { id, status } = req.query
-			if (!id || !status) return res.status(400).json({ success: false, message: 'Please provide id and status' })
+			const {courseId} = req.query
+			console.log(courseId)
+			if (!courseId) return res.status(400).json({ success: false, message: 'Please provide id ' })
 			
-            const course = await Course.findById(id)
+            const course = await Course.findById(courseId)
 			if (!course) return res.status(404).json({ success: false, message: 'Course not found' })
 			
             course.status = 'Published'
@@ -383,6 +409,23 @@ module.exports = {
 			next(error)
 		}
 	},
+
+	rejectCourse: async (req, res, next) => {
+		try {
+			const {courseId} = req.query
+			if (!courseId) return res.status(400).json({ success: false, message: 'Please provide id and status' })
+			
+            const course = await Course.findById(courseId)
+			if (!course) return res.status(404).json({ success: false, message: 'Course not found' })
+			
+            course.status = 'Rejected'
+			await course.save()
+			res.status(200).json({ success: true })
+		} catch (error) {
+			next(error)
+		}
+	},
+
 
 	getSearchCourses: async (req, res, next) => {
 		try {

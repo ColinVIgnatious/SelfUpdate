@@ -11,12 +11,19 @@ export function getPendingCourses({ page, count, query }) {
 	return axios.get(`/api/pending-courses?page=${page}&count=${count}&query=${query}`).then((res) => res.data)
 }
 
+export function getPendingCoursesDetails( courseId ) {
+	return axios.get(`/api/pending-courses-details?courseId=${courseId}`).then((res) => res.data)
+}
+
 export function getCategorisedCourses({ page, count, categoryId }) {
 	return axios.get(`/api/categorised-courses?page=${page}&count=${count}&categoryId=${categoryId}`).then((res) => res.data)
 }
 
-export function changeCourseStatus({id, status}) {
-		return axios.patch(`/api/change-course-status?id=${id}&status=${status}`).then((res) => res.data)
+export function changeCourseStatus({courseId}) {
+		return axios.patch(`/api/change-course-status?courseId=${courseId}`).then((res) => res.data)
+	}
+export function rejectCourse({courseId}) {
+		return axios.patch(`/api/reject-course?courseId=${courseId}`).then((res) => res.data)
 	}
 export function getCoursesByTeacher({ page, count, query }) {
 	return axios.get(`/api/teacher/courses?query=${query}&page=${page}&count=${count}`).then((res) => res.data)

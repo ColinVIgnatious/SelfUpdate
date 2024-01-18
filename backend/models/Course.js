@@ -52,7 +52,7 @@ const courseSchema = new mongoose.Schema({
 	],
 	status: {
 		type: String,
-		enum: ['Draft', 'Published','Pending Approval'],
+		enum: ['Draft', 'Published','Pending Approval','Rejected'],
 		default: 'Pending Approval',
 	},
 	createdAt: {

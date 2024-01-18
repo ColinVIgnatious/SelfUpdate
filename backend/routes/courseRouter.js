@@ -24,6 +24,8 @@ router.patch('/update-course/:id', protectTeacher, upload.single('thumbnail'), c
 
 router.get('/all-courses', courseController.getAllCourses) //admin
 router.get('/pending-courses', courseController.getPendingCourses) //admin
+router.get('/pending-courses-details', courseController.getPendingCoursesDetails) //admin
 router.patch('/change-course-status', courseController.changeCourseStatus) //admin
+router.patch('/reject-course', courseController.rejectCourse) //admin
 
 module.exports = router

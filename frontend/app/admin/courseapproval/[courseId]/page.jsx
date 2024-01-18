@@ -1,5 +1,5 @@
 'use client'
-import { getCourse, getEnrollment } from '@/api/courses'
+import { getPendingCoursesDetails } from '@/api/courses'
 import { setProgress } from '@/api/courses'
 import VideoPlayer from '@/components/VideoPlayer'
 import { Accordion, AccordionItem, Button, Spacer, Tab, Tabs } from '@nextui-org/react'
@@ -7,73 +7,77 @@ import { CheckCircle, PlaySquare } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
-// import Comments from './Comments'
-
+import { changeCourseStatus,rejectCourse } from '@/api/courses'
+import { useRouter } from 'next/navigation';
 
 export default function Page({ params: { courseId } }) {
-	const [course, setCourse] = useState('')
+	const [course, setCourse] = useState(null)
 	const [currentChapter, setCurrentChapter] = useState(null)
 	const [currentSegment, setCurrentSegment] = useState(null)
 	const [currentAccordian, setCurrentAccordian] = useState(null)
-	const [enrollment, setEnrollment] = useState(null)
 	const queryClient = useQueryClient()
-
+	const router = useRouter()
 	const { data, isLoading, isError } = useQuery({
-		queryKey: ['course', courseId],
-		queryFn: () => getCourse(courseId),
+		queryKey: ['pendingcoursesdetails', courseId],
+		queryFn: () => getPendingCoursesDetails(courseId),
 		keepPreviousData: true,
 	})
 
 	useEffect(() => {
 		if (data?.course) {
-			setCourse(data?.course)
-			setCurrentChapter(data?.course?.chapters[0])
-			setCurrentSegment(data?.course?.chapters[0].segments[0])
-			setCurrentAccordian(data?.course?.chapters[0]._id)
+			setCourse(data?.course[0])
+			console.log(data?.course)
+			
 		}
 	}, [data])
-
-	const { isLoading: isLoadingMarkProgress, mutate: mutateMarkProgress } = useMutation({
-		mutationFn: setProgress,
-		onSuccess: (data) => {
-			queryClient.invalidateQueries({ queryKey: ['progress', { courseId }] })
-			nextSegment()
-		},
-		onError: (error) => {
-			const err = error?.response?.data?.message
-			if (err) toast.error(error?.response?.data?.message || 'Something went wrong!')
-		},
-	})
-
-	const handleMarkProgress = async (segmentId) => {
-		mutateMarkProgress({ courseId: course?._id, chapterId: currentChapter?._id, segmentId })
-	}
-
-	const {
-		data: enrollmentData,
-		isLoading: isLoadingEnrollment,
-		isError: isErrorEnrollment,
-	} = useQuery({
-		queryKey: ['enrollment', courseId],
-		queryFn: () => getEnrollment(courseId),
-		keepPreviousData: true,
-	})
-
 	useEffect(() => {
-		if (enrollmentData?.enrollment) {
-			setEnrollment(enrollmentData?.enrollment)
-		}
-	}, [enrollmentData])
+		if(course?.chapters)
+			{setCurrentChapter(course?.chapters[0])
+			console.log('CH',course?.chapters[0])
+			setCurrentSegment(course?.chapters[0].segments[0])
+			setCurrentAccordian(course?.chapters[0]._id)
+			}
+		
+	}, [course])
 
-	const checkProgressStatus = (chapterId, segmentId) => {
-		const progress = enrollment?.progress?.chapters
-		if (!progress) return false
-		const chapter = progress.find((prog) => prog?.chapterId === chapterId)
-		if (!chapter) return false
-		const segment = chapter?.segments.find((seg) => seg?.segmentId === segmentId)
-		if (!segment) return false
-		return true
-	}
+    const { mutate: mutatePublishCourse, isLoading: isLoadingPublish } = useMutation({
+        mutationFn: changeCourseStatus,
+        onSuccess: () => {
+            // Assuming a successful publish operation triggers a re-fetch of the course data
+            queryClient.invalidateQueries(['course', courseId]);
+            toast.success('Course published successfully!');
+			router.push(`/admin/courseapproval`);
+        },
+        onError: (error) => {
+            // Handle the error, show an error message, etc.
+            toast.error(error?.response?.data?.message || 'Failed to publish course!');
+        },
+    });
+
+    const { mutate: mutateUnpublishCourse, isLoading: isLoadingUnpublish } = useMutation({
+        mutationFn: rejectCourse,
+        onSuccess: () => {
+            // Assuming a successful unpublish operation triggers a re-fetch of the course data
+            queryClient.invalidateQueries(['course', courseId]);
+            toast.success('Course unpublished successfully!');
+			router.push(`/admin/courseapproval`);
+        },
+        onError: (error) => {
+            // Handle the error, show an error message, etc.
+            toast.error(error?.response?.data?.message || 'Failed to unpublish course!');
+        },
+    });
+
+    const handlePublishCourse = ({courseId}) => {
+        // Trigger the publish mutation
+        mutatePublishCourse({courseId});
+    };
+
+    const handleUnpublishCourse = ({courseId}) => {
+        // Trigger the unpublish mutation
+        mutateUnpublishCourse({courseId});
+    };
+	
 
 	const nextSegment = () => {
 		const currentSegmentIndex = currentChapter?.segments.findIndex((seg) => seg?._id === currentSegment?._id)
@@ -89,10 +93,10 @@ export default function Page({ params: { courseId } }) {
 		const nextSegment = currentChapter?.segments[currentSegmentIndex + 1]
 		setCurrentSegment(nextSegment)
 	}
-
+if(!course) return null
 	return (
 		<div>
-			{course && enrollment && (
+			{course && (
 				<>
 					<h1 className="text-xl font-semibold">{course?.title}</h1>
 					<Spacer y={4} />
@@ -119,18 +123,14 @@ export default function Page({ params: { courseId } }) {
 															<p className="text-medium font-medium">{index + 1}.</p>
 															<p className="text-medium font-medium">{seg?.title}</p>
 															<PlaySquare size={14} />
-															{checkProgressStatus(chapter?._id, seg?._id) && (
-																<CheckCircle size={14} color="#0f0" />
-															)}
+															
 														</>
 													) : (
 														<>
 															<p className="text-medium">{index + 1}.</p>
 															<p className="text-medium">{seg?.title}</p>
 															<PlaySquare size={14} />
-															{checkProgressStatus(chapter?._id, seg?._id) && (
-																<CheckCircle size={14} color="#0f0" />
-															)}
+															
 														</>
 													)}
 												</div>
@@ -142,32 +142,35 @@ export default function Page({ params: { courseId } }) {
 						</div>
 						<div>
 							<VideoPlayer segment={currentSegment} />
-							{/* onEnded={handleMarkProgress}  */}
 							<Spacer y={4} />
 							<div className="flex justify-between items-center">
 								<p className="text-xl font-semibold">{currentSegment?.title}</p>
-								<Button
-									isLoading={isLoadingMarkProgress}
-                                    radius='none'
-									size="md"
-									color="primary"
-									variant="faded"
-									onClick={() => handleMarkProgress(currentSegment?._id)}>
-									Mark as completed
-								</Button>
+							<div>
+							<Button
+								size="md"
+								color="success"
+								onClick={()=>handlePublishCourse({courseId:course._id})}
+								// disabled={isPublished}
+							>
+								Publish Course
+							</Button>
+							<Spacer x={2} />
+							<Button
+								size="md"
+								color="danger"
+								onClick={()=>handleUnpublishCourse({courseId:course._id})}
+								// disabled={!isPublished}
+							>
+								Reject Course
+							</Button>
 							</div>
+						</div>
 							<Spacer y={4} />
 							<div>
 								<Tabs aria-label="Options" variant="underlined">
 									<Tab key="description" title="Description">
 										{currentSegment?.description}
 									</Tab>
-									{/* <Tab key="comments" title="Comments"> */}
-										{/* <Comments segmentId={currentSegment?._id} /> */}
-									{/* </Tab>
-									<Tab key="attachments" title="Attachments">
-										No attachments
-									</Tab> */}
 								</Tabs>
 							</div>
 						</div>

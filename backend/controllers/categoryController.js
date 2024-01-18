@@ -66,6 +66,12 @@ module.exports = {
 	createCategory: async (req, res, next) => {
 		try {
 			const { title, description, status } = req.body
+			// Check if a category with the same title already exists
+			const existingCategory = await Category.findOne({ title: { $regex: `^${title}$`, $options: 'i' } });
+
+			if (existingCategory) {
+				return res.status(400).json({ success: false, message: 'Category with the same title already exists.' });
+			}
 			const category = await Category.create({ title, description, status })
 			res.status(200).json({ success: true, category })
 		} catch (error) {

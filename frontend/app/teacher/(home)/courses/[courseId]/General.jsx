@@ -42,13 +42,14 @@ export default function General({ errors, setErrors }) {
 		},
 		onError: (error) => {
 			let message = error?.response?.data?.errors
-			if (message) setErrors({ ...errors, thumbnail: message })
+			if (message) setErrors({ ...errors, thumbnail: "Invalid Image" })
 			else toast.error('Something went wrong')
 		},
 	})
 
 	const handleImageChange = (e) => {
 		e.preventDefault()
+		setErrors({ ...errors, thumbnail: "" })
 		const file = e.target.files[0]
 		if (file) mutateCourseThumbnail({ courseId: course._id, file })
 	}

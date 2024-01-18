@@ -1,6 +1,5 @@
 'use client'
 import React, { useEffect } from 'react'
-
 import { getPendingCourses } from '@/api/courses'
 
 import {
@@ -38,7 +37,7 @@ const statusOptions = [
 ]
 
 import { useQuery } from 'react-query'
-import { useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation';
 import ApproveCourse from './ApproveCourse'
 import { AlertTriangle, MoreVertical, Search } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -66,9 +65,7 @@ export default function App() {
 		keepPreviousData: true,
 	})
 	useEffect(() => {
-    console.log(data)
-	
-	  
+    console.log(data)  
 	}, [data])
 	
 
@@ -80,7 +77,7 @@ export default function App() {
 		if (data) setCourses(data.courses)
 		setPages(Math.ceil(data?.totalCourses / rowsPerPage))
 	}, [data])
-
+	
 	const [selectedKeys, setSelectedKeys] = React.useState([])
 	const [visibleColumns, setVisibleColumns] = React.useState(INITIAL_VISIBLE_COLUMNS)
 	const [statusFilter, setStatusFilter] = React.useState('all')
@@ -155,29 +152,35 @@ export default function App() {
 						{cellValue}
 					</Chip>
 				)
-			case 'actions':
-				const disabledKeys = course.status === 'Pending Approval' ? ['block'] : []
-				return (
-					<div className="relative flex justify-end items-center gap-2">
-						<Dropdown>
-							<DropdownTrigger>
-								<Button isIconOnly size="sm" variant="light">
-									<MoreVertical className="text-default-300" />
-								</Button>
-							</DropdownTrigger>
-							<DropdownMenu  className="text-foreground-500">
-								<DropdownItem
-									key="block"
-									onClick={() => {
-										setCurrentStatus(course)
-										onOpenApproveCourse()
-									}}>
-									{course.status === 'Pending Approval' ? 'Publish' : 'UnPublish'}
-								</DropdownItem>
-							</DropdownMenu>
-						</Dropdown>
-					</div>
-				)
+				case 'actions':
+					const disabledKeys = course.status === 'Pending Approval' ? ['block'] : []
+					return (
+						<div className="relative flex justify-end items-center gap-2">
+							<Dropdown>
+								<DropdownTrigger>
+									<Button isIconOnly size="sm" variant="light">
+										<MoreVertical className="text-default-300" />
+									</Button>
+								</DropdownTrigger>
+								<DropdownMenu  className="text-foreground-500">
+									<DropdownItem
+										key="block"
+										onClick={() => {
+											if (course.status === 'Pending Approval') {
+												// Navigate to the desired route
+												router.push(`/admin/courseapproval/${course._id}`);
+											  } else {
+												// Handle UnPublish logic
+												setCurrentStatus(course);
+											  }
+											}}>
+										{course.status === 'Pending Approval' ? 'View' : 'UnPublish'}
+										
+									</DropdownItem>
+								</DropdownMenu>
+							</Dropdown>
+						</div>
+					)
 			default:
 				return cellValue
 		}
@@ -284,9 +287,6 @@ export default function App() {
 				onSelectionChange={setSelectedKeys}
 				onSortChange={setSortDescriptor}
 				selectionMode="single"
-				// onRowAction={(key) => {
-				// 	router.push(`/teacher/users/${key}`)
-				// }}
 			>
 				<TableHeader columns={headerColumns}>
 					{(column) => (
@@ -312,7 +312,7 @@ export default function App() {
 				</TableBody>
 			</Table>
 			{/* <BlockUserModal isOpen={isOpenBlockUserModal} onClose={onCloseBlockUserModal} user={currentUser} refetch={refetch}/> */}
-			<ApproveCourse isOpen={isOpenApproveCourse} onClose={onCloseApproveCourse} course={currentStatus} refetch={refetch}/>
+			{/* <ApproveCourse isOpen={isOpenApproveCourse} onClose={onCloseApproveCourse} course={currentStatus} refetch={refetch}/> */}
 		</div>
 	)
 }

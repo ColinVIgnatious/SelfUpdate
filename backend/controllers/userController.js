@@ -2,6 +2,7 @@ const { OAuth2Client } = require('google-auth-library')
 const User = require('../models/User')
 const Enrollment = require('../models/Enrollment')
 const Course = require('../models/Course')
+const Category = require('../models/Category')
 const generateToken = require('../utils/generateToken')
 const nodemailer = require('nodemailer')
 
@@ -572,6 +573,32 @@ module.exports = {
 				},
 			])
 
+			let enrollmentsPerDay = await Enrollment.aggregate([
+				{
+					$match: {
+						teacher: req.user._id,
+					},
+				},
+				{
+					$group: {
+						_id: { $dateToString: { format: '%Y-%m-%d', date: '$purchasedAt' } },
+						count: { $sum: 1 },
+					},
+				},
+				{
+					$sort: {
+						_id: 1,
+					},
+				},
+				{
+					$project: {
+						date: '$_id',
+						count: 1,
+						_id: 0,
+					},
+				},
+			])
+
 			let topCourses = await Enrollment.aggregate([
 				{
 					$match: {
@@ -653,24 +680,45 @@ module.exports = {
 					},
 				},
 				{
-					$unwind: '$category',
+					$unwind: {
+						path: '$category',
+						preserveNullAndEmptyArrays: true,
+					},
 				},
 				{
 					$project: {
-						id: '$category.title',
+						id: { $ifNull: ['$category.title', 'No Category'] },
 						value: '$count',
 					},
 				},
-			])
-
+				{
+					$group: {
+						_id: '$id',
+						value: { $sum: '$value' },
+					},
+				},
+			]);
+			
+			// Ensure all categories are present, even those with no courses
+			const allCategories = await Category.find({});
+			allCategories.forEach(category => {
+				const existingData = countByCategory.find(data => data._id === category.title);
+				if (!existingData) {
+					countByCategory.push({
+						_id: category.title,
+						value: 0,
+					});
+				}
+			});
+			
 			countByCategory = countByCategory.map((it, index) => {
 				return {
-					id: it.id,
+					id: it._id,
 					value: it.value,
-					label: it.id,
+					label: it._id,
 					color: index,
-				}
-			})
+				};
+			});
 
 			res.status(200).json({
 				success: true,
@@ -680,6 +728,7 @@ module.exports = {
 					topCourses,
 					totalAmountEarned: totalCoursesEnrolled[0]?.totalAmountEarned || 0,
 					countByCategory,
+					enrollmentsPerDay,
 				},
 			})
 
@@ -719,6 +768,27 @@ module.exports = {
 					},
 				},
 			])
+			let enrollmentsPerDay = await Enrollment.aggregate([
+				
+				{
+					$group: {
+						_id: { $dateToString: { format: '%Y-%m-%d', date: '$purchasedAt' } },
+						count: { $sum: 1 },
+					},
+				},
+				{
+					$sort: {
+						_id: 1,
+					},
+				},
+				{
+					$project: {
+						date: '$_id',
+						count: 1,
+						_id: 0,
+					},
+				},
+			])
 
 			let topCourses = await Enrollment.aggregate([
 				
@@ -793,21 +863,42 @@ module.exports = {
 					},
 				},
 				{
-					$unwind: '$category',
+					$unwind: {
+						path: '$category',
+						preserveNullAndEmptyArrays: true,
+					},
 				},
 				{
 					$project: {
-						id: '$category.title',
+						id: { $ifNull: ['$category.title', 'No Category'] },
 						value: '$count',
 					},
 				},
-			])
+				{
+					$group: {
+						_id: '$id',
+						value: { $sum: '$value' },
+					},
+				},
+			]);
+			
+			// Ensure all categories are present, even those with no courses
+			const allCategories = await Category.find({});
+			allCategories.forEach(category => {
+				const existingData = countByCategory.find(data => data._id === category.title);
+				if (!existingData) {
+					countByCategory.push({
+						_id: category.title,
+						value: 0,
+					});
+				}
+			});
 
 			countByCategory = countByCategory.map((it, index) => {
 				return {
-					id: it.id,
+					id: it._id,
 					value: it.value,
-					label: it.id,
+					label: it._id,
 					color: index,
 				}
 			})
@@ -820,6 +911,7 @@ module.exports = {
 					topCourses,
 					totalAmountEarned: totalCoursesEnrolled[0]?.totalAmountEarned || 0,
 					countByCategory,
+					enrollmentsPerDay,
 				},
 			})
 
